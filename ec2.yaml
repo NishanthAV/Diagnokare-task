@@ -1,4 +1,4 @@
----
+AWSTemplateFormatVersion: "2010-09-09"
 Resources:
   WebServerSG:
     Type: AWS::EC2::SecurityGroup
@@ -13,21 +13,21 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 108.48.102.126/32
+          CidrIp: 49.206.13.222/32
       Tags:
         - Key: Name
           Value: MyWebServer SG
-      VpcId: vpc-01dbbab3440320be5
+      VpcId: vpc-0a4a57e65c3f64224
 
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      SubnetId: subnet-0cd3ca69048641381
+      SubnetId: subnet-08dda28d9bed61f21
       SecurityGroupIds:
         - !Ref WebServerSG
-      KeyName: webkey
-      ImageId: ami-08e4e35cccc6189f4 
+      KeyName: nick
+      ImageId: ami-0d81306eddc614a45
       Tags:
         - Key: Name
           Value: MyWebServer

@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Description: "Create a VPC with a public and private subnet, an Internet Gateway, an EC2 instance in the public subnet with an Elastic IP, an S3 bucket for static content, and a security group."
 Resources:
   # Create the VPC
   MyVPC:
@@ -14,7 +15,7 @@ Resources:
   PublicSubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
-      VpcId:   !Ref MyVPC
+      VpcId:   !Ref vpc-0a4a57e65c3f64224
       CidrBlock: "10.0.1.0/24"   
       AvailabilityZone: "ap-south-1a"  
       MapPublicIpOnLaunch: true  
@@ -25,7 +26,7 @@ Resources:
   PrivateSubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
-      VpcId:  !Ref MyVPC
+      VpcId:  !Ref vpc-0a4a57e65c3f64224
       CidrBlock: "10.0.2.0/24" 
       AvailabilityZone: "ap-south-1b" 
       # MapPublicIpOnLaunch: false   
@@ -43,7 +44,7 @@ Resources:
   GatewayAttachment:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
-      VpcId: !Ref MyVPC
+      VpcId: !Ref vpc-0a4a57e65c3f64224
       InternetGatewayId: !Ref InternetGateway
 
 # Create the EC2 instance in the public subnet
@@ -55,7 +56,7 @@ Resources:
        # Replace with your key pair name     
       InstanceType: "t2.micro"    
       KeyName: "nick.pem" 
-      SubnetId:    !Ref PublicSubnet 
+      SubnetId: subnet-08dda28d9bed61f21
       SecurityGroupIds:
         - !Ref SecurityGroup 
       
@@ -86,23 +87,23 @@ Resources:
       Tags:
         - Key: "Ashwa"
           Value: "ElasticIP" 
-  ElasticIPAssociation:
-    Type: "AWS::EC2::EIPAssociation"
-    Properties:
-      InstanceId: !Ref EC2Instance
-      AllocationId: !GetAtt MyElasticIP.AllocationId
+   #ElasticIPAssociation:
+   # Type: "AWS::EC2::EIPAssociation"
+   # Properties:
+   #   InstanceId: !Ref EC2Instance
+    #  AllocationId: !GetAtt MyElasticIP.AllocationId
 
   # Create the security group for the EC2 instance
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow HTTP and SSH traffic
-      VpcId: !Ref MyVPC       
+      VpcId: vpc-0a4a57e65c3f64224       
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 127.0.0.1/32 # Replace with your specific IP address
+          CidrIp: 49.206.13.222/32 # Replace with your specific IP address
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
@@ -141,7 +142,7 @@ Resources:
           - Key: Nick Bucket Policy
             Value: S3BucketPolicy
 
-Outputs:
-      WebsiteURL:
-        Description: URL for the website hosted on the EC2 instance
-        Value: !Sub 'http://${MyEC2Instance.PublicDns}'
+#Outputs:
+#     WebsiteURL:
+#      Description: URL for the website hosted on the EC2 instance
+#      Value: !Sub 'http://${MyEC2Instance.PublicDns}'
