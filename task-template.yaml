@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  # Create the VPC
+  MyVPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      # EnableDnsSupport: true
+      # EnableDnsHostnames: true
+      Tags:
+        - Key: "Nick vpc"
+          Value: "MyVPC"
+  # Create the public subnet
+  PublicSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:   !Ref MyVPC
+      CidrBlock: "10.0.1.0/24"   
+      AvailabilityZone: "ap-south-1a"  
+      MapPublicIpOnLaunch: true  
+      Tags:
+        - Key: "Nick public subnet"
+          Value: "PublicSubnet"
+  # Create the private subnet
+  PrivateSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:  !Ref MyVPC
+      CidrBlock: "10.0.2.0/24" 
+      AvailabilityZone: "ap-south-1b" 
+      # MapPublicIpOnLaunch: false   
+      Tags:
+        - Key: "Nick private subnet"
+          Value: "PrivateSubnet"
+  # Create the internet gateway
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: "Nick internet gateway"
+          Value: "InternetGateway"
+  # Attach the internet gateway to the VPC
+  GatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+
+# Create the EC2 instance in the public subnet
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: "ami-0d81306eddc614a45" # Replace with an appropriate AMI for your web server
+      AvailabilityZone: "ap-south-1"
+       # Replace with your key pair name     
+      InstanceType: "t2.micro"    
+      KeyName: "nick.pem" 
+      SubnetId:    !Ref PublicSubnet 
+      SecurityGroupIds:
+        - !Ref SecurityGroup 
+      
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install httpd -y
+          sudo systemctl start httpd
+          sudo systemctl enable httpd
+          aws s3 sync s3://my-bucket /var/www/html/
+      
+      # UserData:
+      #   Fn::Base64: !Sub |
+      #     #!/bin/bash -xe
+      #     sudo su
+      #     yum update -y
+      #     yum install httpd -y
+      #     systemctl enable httpd
+      #     systemctl start httpd  
+      #     echo "Hello World"  >  /var/www/html/index.html
+
+  ElasticIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: "vpc"
+      Tags:
+        - Key: "Ashwa"
+          Value: "ElasticIP" 
+  ElasticIPAssociation:
+    Type: "AWS::EC2::EIPAssociation"
+    Properties:
+      InstanceId: !Ref EC2Instance
+      AllocationId: !GetAtt MyElasticIP.AllocationId
+
+  # Create the security group for the EC2 instance
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and SSH traffic
+      VpcId: !Ref MyVPC       
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 127.0.0.1/32 # Replace with your specific IP address
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        -  Key: "Nick Security Group"
+           Value: "SecurityGroup"
+  
+  # Create the S3 bucket
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "ram" # Replace with your desired bucket name
+      AccessControl: "PublicRead" # Make the bucket publicly accessible
+      BucketEncryption:  
+           ServerSideEncryptionConfiguration: 
+              - ServerSideEncryptionByDefault:
+                  SSEAlgorithm: AES256
+      Tags:
+        - Key: "Nick S3 Bucket"
+          Value: "S3Bucket"
+ 
+  # Create an S3 bucket policy to allow public access to the bucket
+  S3BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument: 
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal: '*'
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref S3Bucket, '/*']]
+        Tags:
+          - Key: Nick Bucket Policy
+            Value: S3BucketPolicy
+
+Outputs:
+      WebsiteURL:
+        Description: URL for the website hosted on the EC2 instance
+        Value: !Sub 'http://${MyEC2Instance.PublicDns}'
