@@ -15,7 +15,7 @@ Resources:
   PublicSubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
-      VpcId:   !Ref vpc-0a4a57e65c3f64224
+      VpcId:   !Ref MyVPC
       CidrBlock: "10.0.1.0/24"   
       AvailabilityZone: "ap-south-1a"  
       MapPublicIpOnLaunch: true  
@@ -26,7 +26,7 @@ Resources:
   PrivateSubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
-      VpcId:  !Ref vpc-0a4a57e65c3f64224
+      VpcId:  !Ref MyVPC
       CidrBlock: "10.0.2.0/24" 
       AvailabilityZone: "ap-south-1b" 
       # MapPublicIpOnLaunch: false   
@@ -44,7 +44,7 @@ Resources:
   GatewayAttachment:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
-      VpcId: !Ref vpc-0a4a57e65c3f64224
+      VpcId: !Ref MyVPC
       InternetGatewayId: !Ref InternetGateway
 
 # Create the EC2 instance in the public subnet
@@ -52,22 +52,27 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: "ami-0d81306eddc614a45" # Replace with an appropriate AMI for your web server
-      AvailabilityZone: "ap-south-1"
+     # AvailabilityZone: "ap-south-1"
        # Replace with your key pair name     
       InstanceType: "t2.micro"    
-      KeyName: "nick.pem" 
+      KeyName: "nick" 
       SubnetId: subnet-08dda28d9bed61f21
       SecurityGroupIds:
         - !Ref SecurityGroup 
+      Tags:
+        - Key: "Name"
+          Value: "Instance"
       
       UserData:
         Fn::Base64:
           !Sub |
-          #!/bin/bash
+          #!/bin/bash -xe
+          sudo su
           sudo yum update -y
           sudo yum install httpd -y
           sudo systemctl start httpd
           sudo systemctl enable httpd
+          echo "Greeting from Diagnokare!" > /var/www/html/index.html
           aws s3 sync s3://my-bucket /var/www/html/
       
       # UserData:
@@ -116,7 +121,7 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "ram" # Replace with your desired bucket name
+      BucketName: "villian" # Replace with your desired bucket name
       AccessControl: "PublicRead" # Make the bucket publicly accessible
       BucketEncryption:  
            ServerSideEncryptionConfiguration: 
@@ -127,22 +132,24 @@ Resources:
           Value: "S3Bucket"
  
   # Create an S3 bucket policy to allow public access to the bucket
-  S3BucketPolicy:
-    Type: "AWS::S3::BucketPolicy"
-    Properties:
-      Bucket: !Ref S3Bucket
-      PolicyDocument: 
-        Statement:
-          - Action:
-              - 's3:GetObject'
-            Effect: Allow
-            Principal: '*'
-            Resource: !Join ['', ['arn:aws:s3:::', !Ref S3Bucket, '/*']]
-        Tags:
-          - Key: Nick Bucket Policy
-            Value: S3BucketPolicy
+  #S3BucketPolicy:
+  #  Type: "AWS::S3::BucketPolicy"
+  #  Properties:
+  #    Bucket: !Ref S3Bucket
+  #    PolicyDocument: 
+  #      Version: "2012-10-17"
+  #      Statement:
+  #        - Action:
+  #            - 's3:GetObject'
+  #            - "s3:PutObject"
+  #          Effect: Allow
+  #          Principal: '*'
+  #          Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+  #      Tags:
+  #        - Key: "Nick Bucket Policy"
+  #          Value: "S3BucketPolicy"
 
 #Outputs:
 #     WebsiteURL:
-#      Description: URL for the website hosted on the EC2 instance
-#      Value: !Sub 'http://${MyEC2Instance.PublicDns}'
+#       Description: URL for the website hosted on the EC2 instance
+#       Value: !Sub 'http://${MyEC2Instance.PublicDns}'

@@ -1,0 +1,57 @@
+Diagnokare task
+
+IP-http://13.232.51.135/ 
+
+Pre-reqisits
+Cloud-AWS(free tier account)
+codeeditor-vscode
+scripting-YAML Format
+Current ip
+Region of aws cloud-Mumbai(ap-south-1)
+
+Resources required
+-VPC
+-Public Subnet
+-Private Subnet
+-Internet Gateway
+-Gateway Attachment
+-EC2 Instance
+-ElasticIP
+-SecurityGroup
+-S3 Bucket
+
+steps to execute
+-write a yaml in vscode
+-Create an account in aws 
+-open cloud formation page
+-click option create a new stack(option with new resources)
+-Click option[Template is ready]
+-click [upload a template file]
+-click next [generates s3 url to proceed further]
+-give a name to your stack ur creating
+-click next and submit
+-template gets automating using yaml script click refresh button to get updates on stack creation of resources 
+-open ec2 instance page
+-click instance name created by user while scripting in yaml format
+-check for public ip4 adrress
+-copy ip and open in new browser tab to check if its running
+
+
+Github commands
+-create a repository
+-git clone [http-link of repository]
+-git init
+-git add 
+-git commit -m "Commit message"
+-git push
+
+
+Refrences
+1.Chatgpt-OpenAI
+  link-https://chat.openai.com/chat
+2.Youtube-AOS Note Youtube Channel
+  link-https://www.youtube.com/watch?v=riIDsk993YY
+3.Documentation[To understand syntax of resource and property type references]
+  link-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
+
+
