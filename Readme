@@ -41,7 +41,7 @@ Github commands
 -create a repository
 -git clone [http-link of repository]
 -git init
--git add 
+-git add .
 -git commit -m "Commit message"
 -git push
 
