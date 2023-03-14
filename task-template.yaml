@@ -56,12 +56,12 @@ Resources:
        # Replace with your key pair name     
       InstanceType: "t2.micro"    
       KeyName: "nick" 
-      SubnetId: subnet-08dda28d9bed61f21
+      SubnetId: !Ref PublicSubnet
       SecurityGroupIds:
         - !Ref SecurityGroup 
       Tags:
         - Key: "Name"
-          Value: "Instance"
+          Value: "Task"
       
       UserData:
         Fn::Base64:
@@ -73,7 +73,7 @@ Resources:
           sudo systemctl start httpd
           sudo systemctl enable httpd
           echo "Greeting from Diagnokare!" > /var/www/html/index.html
-          aws s3 sync s3://my-bucket /var/www/html/
+          aws s3 sync s3://villu /var/www/html/
       
       # UserData:
       #   Fn::Base64: !Sub |
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow HTTP and SSH traffic
-      VpcId: vpc-0a4a57e65c3f64224       
+      VpcId: !Ref MyVPC     
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -121,7 +121,7 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "villian" # Replace with your desired bucket name
+      BucketName: "villu" # Replace with your desired bucket name
       AccessControl: "PublicRead" # Make the bucket publicly accessible
       BucketEncryption:  
            ServerSideEncryptionConfiguration: 
